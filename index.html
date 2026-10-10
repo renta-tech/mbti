@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MBTI相性診断</title>
+<meta name="description" content="彼とあなたのMBTIを選ぶだけで、ふたりの相性（％）とうまくいく接し方がわかる無料診断。全256通り。彼がENTPなら専用の深掘り診断も。">
+<meta property="og:title" content="彼とあなたのMBTI相性診断">
+<meta property="og:description" content="タイプを2つ選ぶだけ。相性％とうまくいく接し方がわかる無料診断（全256通り）">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://renta-tech.github.io/mbti/og/default.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <!-- 開始：タイプを選ぶ -->
+  <section id="vStart" class="start">
+    <div>
+      <div class="logo">MBTI</div>
+      <h1>彼とあなたの<br><span class="em">相性診断</span></h1>
+      <p class="lead">タイプを2つ選ぶだけ。相性と、<br>うまくいく接し方がわかります。</p>
+    </div>
+    <div class="pick">
+      <h2>彼のタイプ <small id="himLabel">未選択</small></h2>
+      <div class="grid16" id="gridHim" role="group" aria-label="彼のタイプ"></div>
+      <button class="unk" type="button" data-est="him">彼のタイプがわからない →</button>
+    </div>
+    <div class="pick">
+      <h2>あなたのタイプ <small id="youLabel">未選択</small></h2>
+      <div class="grid16" id="gridYou" role="group" aria-label="あなたのタイプ"></div>
+      <button class="unk" type="button" data-est="you">自分のタイプがわからない →</button>
+    </div>
+    <button class="btn" id="go" type="button" disabled>相性を見る</button>
+    <div class="meta"><span>無料</span><span>登録なし</span><span>256通りの組み合わせ</span></div>
+  </section>
+
+  <!-- タイプ推定（4問） -->
+  <section id="vEst" class="estimate" hidden>
+    <div class="bar" aria-hidden="true"><i id="eprog" style="width:0%"></i></div>
+    <div class="qno" id="eno" style="margin-top:22px"></div>
+    <div class="qtext" id="etext"></div>
+    <div class="opts" id="eopts"></div>
+    <button class="ghost" id="ecancel" type="button">← タイプ選択にもどる</button>
+  </section>
+
+  <!-- ENTP専用の深掘り（8問） -->
+  <section id="vQ" hidden>
+    <div class="bar" aria-hidden="true"><i id="prog" style="width:0%"></i></div>
+    <div class="qno" id="qno">Q1 / 8</div>
+    <div class="qtext" id="qtext"></div>
+    <div class="opts" id="opts"></div>
+    <button class="ghost" id="back" type="button">← ひとつ戻る</button>
+  </section>
+
+  <!-- 結果 -->
+  <section id="vR" class="result" hidden>
+    <div class="pair"><span id="rHim"></span><i>×</i><span id="rYou"></span></div>
+    <div class="score">
+      <div class="lab" id="rlab">ふたりの相性</div>
+      <div class="pct"><span id="pct">0</span><small>%</small></div>
+      <div class="type" id="rtype"></div>
+      <span class="tag" id="rtag"></span>
+    </div>
+    <p class="lede" id="rtext"></p>
+    <div class="say">
+      <img id="rchara" src="chara_think.png" alt="" width="216" height="455" hidden>
+      <div id="remb" class="emb" aria-hidden="true"></div>
+      <div class="bubble" id="rvoice"></div>
+    </div>
+    <div class="sec">
+      <h2>うまくいく接し方</h2>
+      <ol class="tips" id="rtips"></ol>
+    </div>
+    <div class="sec">
+      <h2>気をつけたいこと</h2>
+      <p id="rwarn" style="margin:0"></p>
+    </div>
+    <div class="prof">
+      <h2 class="sec" style="margin:0;font-family:var(--display);font-weight:400;font-size:17px" id="pTitle"></h2>
+      <p style="margin:0" id="pLove"></p>
+      <dl><dt>喜ぶこと</dt><dd id="pLikes"></dd><dt>冷めること</dt><dd id="pCools"></dd></dl>
+    </div>
+
+    <!-- 彼がENTPの時だけ出る深掘り -->
+    <div class="deep" id="deep" hidden>
+      <h3>彼がENTPなら、もっと深く見れます</h3>
+      <p>8問の専用診断で、ENTP男子とのリアルな相性と接し方がわかります。</p>
+      <button class="btn" id="goDeep" type="button">ENTP男子 専用診断（1分）</button>
+    </div>
+
+    <!-- シェア画像 -->
+    <div class="share">
+      <p>結果を画像にして、TikTokやストーリーに載せてね</p>
+      <button class="btn" id="makeCard" type="button">シェア用の画像をつくる</button>
+      <div class="cardbox">
+        <img id="cardImg" alt="相性診断の結果画像" hidden>
+        <p id="cardNote" hidden>スマホは画像を長押しで保存できます</p>
+        <a class="btn alt" id="cardSave" hidden>画像を保存</a>
+      </div>
+      <div class="copybox" id="shareText"></div>
+      <button class="btn alt" id="copy" type="button">シェア用の文をコピー</button>
+    </div>
+
+    <!-- 出口A：アフィリエイト枠（商材は config.js で差し替え） -->
+    <div class="exit pr">
+      <div class="k">PR</div>
+      <h3 id="prTitle"></h3>
+      <p><span id="prName">性格や価値観で相性のいい人を探せるマッチングアプリ</span>。18歳以上が対象です。</p>
+      <a class="btn" href="#" id="prLink">アプリを見てみる</a>
+    </div>
+
+    <!-- 出口B：有料ガイド（ENTPの時だけ） -->
+    <div class="exit" id="guide" hidden>
+      <div class="k">もっと知りたい人へ</div>
+      <h3>ENTP男子の本音、全部書きました</h3>
+      <p>脈ありサイン、冷める瞬間、本命にだけ見せる顔。フォロワーさんの相談から見えたパターンをまとめたガイドです。</p>
+      <a class="btn alt" href="#" id="guideLink">ガイドを読む（note・準備中）</a>
+    </div>
+
+    <div class="links">
+      <a id="pairLink" href="#">この組み合わせの詳しい解説</a>
+      <button class="ghost" id="again" type="button" style="margin:0">別の組み合わせを見る</button>
+    </div>
+  </section>
+
+  <footer>
+    この診断はエンタメです。結果は相性を保証するものではありません。<br>
+    PR表記のある枠は広告を含みます。マッチングアプリは18歳以上が対象です。<br>
+    <a href="pair/">組み合わせ一覧</a>　<a href="about.html">運営者情報</a>　<a href="privacy.html">プライバシーポリシー</a><br>
+    運営：ENTPの巣窟（TikTok @entp0341）
+  </footer>
+</div>
+<script src="config.js"></script>
+<script src="core.js"></script>
+<script src="card.js"></script>
+<script src="deep.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
