@@ -50,8 +50,7 @@
     $('pTitle').textContent = `${R.him}（${H.name}）の彼の恋愛傾向`;
     $('deep').hidden = !isEntp || isDeep;
     $('guide').hidden = !isEntp;
-    $('prTitle').textContent = `${R.him}みたいな人と出会いたいなら、性格で相手を探せるアプリがいちばん早い`;
-    if (S.prName) $('prName').textContent = S.prName;
+    renderPr();
     const tag = isDeep ? `ENTP男子とのリアルな相性は${R.pct}%` : `彼${R.him}×わたし${R.you}の相性は${R.pct}%`;
     $('shareText').textContent = `${tag}「${R.name}」だった！ #MBTI相性 #${R.him} #${R.you}`;
     $('pairLink').href = `pair/${R.him.toLowerCase()}-${R.you.toLowerCase()}/`;
@@ -146,10 +145,21 @@
     track('copy_share', {});
   };
   function selectText() { const r = document.createRange(); r.selectNodeContents($('shareText')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('copy').textContent = '文を選択しました。コピーしてね'; }
-  // 出口のリンク：URLが設定されていれば使う。未設定の間は押しても何も起きない
-  const pr = $('prLink'), gd = $('guideLink');
-  if (S.prUrl) { pr.href = S.prUrl; pr.target = '_blank'; pr.rel = 'sponsored noopener'; } else pr.addEventListener('click', e => e.preventDefault());
+  // 出口：PR枠は config.js の prList にURLを入れた案件だけ表示する
+  function renderPr() {
+    const box = $('prList'); box.replaceChildren();
+    for (const it of (S.prList || []).filter(x => x.url)) {
+      const d = document.createElement('div'); d.className = 'exit pr';
+      const k = document.createElement('div'); k.className = 'k'; k.textContent = 'PR（広告）';
+      const h = document.createElement('h3'); h.textContent = it.title;
+      const p = document.createElement('p'); p.textContent = it.desc;
+      const a = document.createElement('a'); a.className = 'btn'; a.href = it.url; a.target = '_blank'; a.rel = 'sponsored nofollow noopener'; a.textContent = it.btn;
+      a.addEventListener('click', () => track('click_pr', { key: it.key, him: last && last.him, you: last && last.you }));
+      const n = document.createElement('div'); n.className = 'slot'; n.textContent = `提供：${it.name}`;
+      d.append(k, h, p, a, n); box.appendChild(d);
+    }
+  }
+  const gd = $('guideLink');
   if (S.guideUrl) { gd.href = S.guideUrl; gd.target = '_blank'; gd.rel = 'noopener'; gd.textContent = 'ガイドを読む（note）'; } else gd.addEventListener('click', e => e.preventDefault());
-  pr.addEventListener('click', () => track('click_pr', { him: last && last.him, you: last && last.you }));
   gd.addEventListener('click', () => track('click_guide', {}));
 })();
