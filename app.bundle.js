@@ -345,7 +345,7 @@ window.ENTP_DEEP = { Q, TYPES };
   const icon = window.MBTI.icon;
   function renderMeters(ms) {
     const list = $('meterList'); list.replaceChildren();
-    for (const m of ms) {
+    for (const m of (ms || [])) {
       const d = document.createElement('div'); d.className = 'mt';
       d.innerHTML = `<div class="row"><span></span><span>${m.v}%</span></div><div class="bar" aria-hidden="true"><i style="width:0%"></i></div>`;
       d.querySelector('span').textContent = m.label; list.appendChild(d);
@@ -421,7 +421,7 @@ window.ENTP_DEEP = { Q, TYPES };
     const pct = Math.max(38, Math.min(98, Math.round((64 + raw * 1.6) * .6 + typePct * .4)));
     const t = DEEP.find(t => pct >= t.min);
     showResult({ him: 'ENTP', you: sel.you, pct, name: t.name, tag: t.tag, text: 'ふたりのタイプの相性に、あなたの答えから見えた「付き合い方のクセ」を合わせた結果です。',
-      voice: t.voice, tips: t.tips, warn: t.warn }, true);
+      voice: t.voice, tips: t.tips, warn: t.warn, meters: window.MBTI.meters('ENTP', sel.you) }, true);
   }
 
   // ───── 画面切り替え・初期化 ─────
