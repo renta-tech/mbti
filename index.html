@@ -10,9 +10,8 @@
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://renta-tech.github.io/mbti/og/default.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="preload" href="dela-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://px.a8.net">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,6 +22,7 @@
       <div class="logo">MBTI</div>
       <h1>彼とあなたの<br><span class="em">相性診断</span></h1>
       <p class="lead">タイプを2つ選ぶだけ。相性と、<br>うまくいく接し方がわかります。</p>
+      <ol class="steps" id="steps"></ol>
     </div>
     <div class="pick">
       <h2>彼のタイプ <small id="himLabel">未選択</small></h2>
@@ -58,7 +58,10 @@
 
   <!-- 結果 -->
   <section id="vR" class="result" hidden>
-    <div class="pair"><span id="rHim"></span><i>×</i><span id="rYou"></span></div>
+    <div class="pairrow">
+      <div class="pp"><div class="emb" id="rHim"></div><span>彼</span></div><i>×</i>
+      <div class="pp"><div class="emb" id="rYou"></div><span>あなた</span></div>
+    </div>
     <div class="score">
       <div class="lab" id="rlab">ふたりの相性</div>
       <div class="pct"><span id="pct">0</span><small>%</small></div>
@@ -66,17 +69,21 @@
       <span class="tag" id="rtag"></span>
     </div>
     <p class="lede" id="rtext"></p>
+    <div class="meters">
+      <h2 id="mtTitle">ふたりの相性の中身</h2>
+      <div id="meterList"></div>
+    </div>
     <div class="say">
-      <img id="rchara" src="chara_think.png" alt="" width="216" height="455" hidden>
+      <img id="rchara" src="chara_think.webp" alt="" width="216" height="455" loading="lazy" hidden>
       <div id="remb" class="emb" aria-hidden="true"></div>
       <div class="bubble" id="rvoice"></div>
     </div>
     <div class="sec">
-      <h2>うまくいく接し方</h2>
+      <h2 id="hTips">うまくいく接し方</h2>
       <ol class="tips" id="rtips"></ol>
     </div>
     <div class="sec">
-      <h2>気をつけたいこと</h2>
+      <h2 id="hWarn">気をつけたいこと</h2>
       <p id="rwarn" style="margin:0"></p>
     </div>
     <div class="prof">
@@ -129,10 +136,7 @@
     運営：ENTPの巣窟（TikTok @entp0341）
   </footer>
 </div>
-<script src="config.js"></script>
-<script src="core.js"></script>
-<script src="card.js"></script>
-<script src="deep.js"></script>
-<script src="app.js"></script>
+<script src="config.js" defer></script>
+<script src="app.bundle.js" defer></script>
 </body>
 </html>

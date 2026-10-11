@@ -2,7 +2,7 @@
 (function (root) {
   const GROUP_COLOR = { NT: '#7b2fbe', NF: '#2f9e6b', SJ: '#2f6fbe', SP: '#d98a1a' };
   const DISPLAY = '"Dela Gothic One", "Hiragino Sans", sans-serif';
-  const BODY = '"Zen Kaku Gothic New", "Hiragino Sans", sans-serif';
+  const BODY = '"Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Noto Sans JP", Meiryo, sans-serif';
 
   function fit(ctx, text, maxW, size, weight, font) {
     let s = size;

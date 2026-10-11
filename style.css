@@ -1,3 +1,4 @@
+@font-face { font-family: "Dela Gothic One"; src: url("dela-subset.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 /* レイアウト：スマホ1カラムの“診断カード”。開始→質問→結果→出口(PR/有料ガイド/シェア) */
 :root {
   --bg: #ffffff;
@@ -9,8 +10,8 @@
   --accent-ink: #ffffff;
   --mark: #ebddfb;
   --pr: #b5651d;
-  --display: "Dela Gothic One", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
-  --body: "Zen Kaku Gothic New", "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+  --display: "Dela Gothic One", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Noto Sans JP", Meiryo, sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Noto Sans JP", Meiryo, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -128,3 +129,38 @@ footer { color: var(--sub); font-size: 12px; text-align: center; line-height: 1.
 .pairlist a { display: block; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 14px; }
 .pairlist a span { color: var(--accent); float: right; font-variant-numeric: tabular-nums; }
 footer a { color: var(--sub); }
+
+/* 使い方（開始画面） */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 18px; padding: 0; list-style: none; }
+.steps li { background: var(--wash); border-radius: 16px; padding: 12px 6px 10px; text-align: center; display: grid; gap: 6px; justify-items: center; min-width: 0; }
+.steps .ic { color: var(--accent); }
+.steps b { font-size: 13px; line-height: 1.4; font-weight: 900; }
+.steps small { font-size: 11px; color: var(--sub); font-weight: 700; line-height: 1.4; }
+.steps .n { font-family: var(--display); font-size: 12px; color: var(--accent); letter-spacing: .06em; }
+/* 結果：タイプの丸 */
+.pairrow { display: flex; justify-content: center; align-items: flex-start; gap: 14px; }
+.pairrow .pp { display: grid; gap: 4px; justify-items: center; font-size: 12px; font-weight: 900; color: var(--sub); }
+.pairrow .pp .emb { width: 84px; height: 84px; font-size: 19px; }
+.pairrow i { font-style: normal; font-weight: 900; color: var(--sub); align-self: center; margin-bottom: 18px; }
+/* メーター */
+.meters { display: grid; gap: 12px; background: var(--wash); border-radius: 18px; padding: 16px; }
+.meters h2 { margin: 0; }
+.mt { display: grid; gap: 5px; }
+.mt .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; font-weight: 900; }
+.mt .row span:last-child { color: var(--accent); font-family: var(--display); font-weight: 400; font-variant-numeric: tabular-nums; }
+.mt .bar { height: 12px; background: var(--bg); border: 1px solid var(--line); }
+.mt .bar i { background: linear-gradient(90deg, var(--accent), #c58bf2); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+/* 見出しアイコン */
+.sec h2, .meters h2, .prof h2 { display: flex; align-items: center; gap: 8px; }
+.sec h2 .ic, .meters h2 .ic, .prof h2 .ic { color: var(--accent); flex: none; }
+/* 広告枠 */
+.exit.pr .head { display: flex; align-items: center; gap: 12px; }
+.exit.pr .ico { flex: none; width: 48px; height: 48px; border-radius: 14px; background: var(--wash); color: var(--pr); display: grid; place-items: center; }
+.exit.pr ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.exit.pr li { display: grid; grid-template-columns: 20px 1fr; gap: 8px; font-size: 14px; font-weight: 700; align-items: start; }
+.exit.pr li .ic { color: var(--pr); margin-top: 2px; }
+.pairlist a span { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .mt .bar i { transition: none; } }
+
+.result .links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 18px; }
+.result .links .ghost { padding: 6px 0; margin: 0; }

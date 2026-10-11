@@ -159,6 +159,30 @@
     if (h[0] === 'E') return 'ふたりとも予定を詰めがち。何もしない日を作ると、関係が長持ちします。';
     return 'ふたりとも内にこもりがち。気持ちは言わないと伝わらないので、短くても言葉にして。';
   }
+  // 相性の中身を4つの観点で見せる（エンタメ用の目安。各観点はタイプの文字の一致・不一致から決める）
+  function meters(h, y) {
+    const same = k => h[k] === y[k];
+    let j = 0; for (const c of h + y) j = (j * 17 + c.charCodeAt(0)) % 101;
+    const jit = n => ((j * (n + 3)) % 13) - 6;
+    const cl = v => Math.max(36, Math.min(96, Math.round(v)));
+    return [
+      { label: '会話のかみ合い', v: cl((same(1) ? 82 : 52) + (same(0) ? 4 : 0) + jit(1)) },
+      { label: 'ワクワク感', v: cl(40 + (same(0) ? 0 : 18) + (same(3) ? 0 : 18) + (same(2) ? 0 : 12) + jit(2)) },
+      { label: '安心感', v: cl(42 + (same(3) ? 18 : 0) + (same(2) ? 14 : 0) + (same(0) ? 10 : 0) + (same(1) ? 8 : 0) + jit(3)) },
+      { label: '気持ちの伝わりやすさ', v: cl(40 + (same(2) ? 24 : 0) + (same(1) ? 16 : 0) + (same(3) ? 8 : 0) + jit(4)) },
+    ];
+  }
+  const ICONS = {
+    bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+    alert: '<path d="M12 3 2.5 20h19L12 3zM12 10v4.5M12 17.2v.1"/>',
+    heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4V5z"/><path d="M8 9.5h8M8 12.5h5"/>',
+    camera: '<path d="M3 8h4l2-3h6l2 3h4v11H3V8z"/><circle cx="12" cy="13" r="3.5"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z"/>',
+  };
+  const icon = (n, sz) => `<svg class="ic" width="${sz || 22}" height="${sz || 22}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
   // 1組分の結果をまとめて返す（ページ生成・アプリの両方で使う）
   function result(h, y) {
     const c = compat(h, y);
@@ -172,10 +196,277 @@
       him: h, you: y, pct: c.pct, golden: c.golden,
       name: hand ? hand.name : base.name, tag: base.tag,
       text: hand ? hand.text : `${h}（${H.name}）の彼と、${y}（${Y.name}）のあなた。${H.love}`,
-      voice: H.voice, tips: tips.slice(0, 3), warn: hand ? hand.warn : warnFor(h, y),
+      voice: H.voice, tips: tips.slice(0, 3), warn: hand ? hand.warn : warnFor(h, y), meters: meters(h, y),
       handWritten: !!hand,
     };
   }
 
-  root.MBTI = { TYPES, ORDER, GROUP_NAME, ENTP_PAIRS, compat, pairType, tipsFor, warnFor, result };
+  root.MBTI = { TYPES, ORDER, GROUP_NAME, ENTP_PAIRS, compat, pairType, tipsFor, warnFor, meters, icon, ICONS, result };
 })(typeof window !== 'undefined' ? window : globalThis);
+
+;
+// 彼がENTPの時だけの深掘り診断（8問）
+(function(){
+const Q = [
+  { q: '彼が急に、あなたの意見に反対してきた。どうする？', a: [
+    ['え、なんで？と理由を聞いて言い返す', { spark: 3, curious: 1 }],
+    ['ちょっとムッとするけど、面白いから乗る', { spark: 2, humor: 1 }],
+    ['ケンカしたくないから引く', { spark: -1 }],
+    ['普通に傷つく', { spark: -2, direct: 1 }] ] },
+  { q: '3日くらいLINEが返ってこない。', a: [
+    ['なんか夢中になってるんだろうな、で終わり', { free: 3 }],
+    ['気にはなるけど、自分も好きに過ごす', { free: 2 }],
+    ['「生きてる？」とだけ送る', { free: 1, humor: 1 }],
+    ['不安で何回か送っちゃう', { free: -2 }] ] },
+  { q: '彼が「ちょっと思いついたんだけど」と、謎の話を始めた。', a: [
+    ['大好物。どこまでも付き合う', { curious: 3 }],
+    ['よく分からないけど、楽しそうだから聞く', { curious: 2, humor: 1 }],
+    ['その話、いま必要？と思う', { curious: -1, direct: 1 }],
+    ['正直ちょっと疲れる', { curious: -2 }] ] },
+  { q: 'デートの予定、どう決めたい？', a: [
+    ['当日のノリで決めたい', { free: 2, humor: 1 }],
+    ['ざっくり決めて、あとは流れで', { free: 1, curious: 1 }],
+    ['ちゃんと決めておきたい', { free: -1 }],
+    ['全部決めてほしい', { free: -2 }] ] },
+  { q: '彼にからかわれた。', a: [
+    ['倍にして返す', { humor: 3, spark: 1 }],
+    ['笑って流す', { humor: 2 }],
+    ['ちょっと拗ねる', { humor: -1, direct: 1 }],
+    ['からかわれるのは苦手', { humor: -2 }] ] },
+  { q: '「好き」って言葉、どれくらい欲しい？', a: [
+    ['言葉より行動で分かればいい', { direct: 1, free: 2 }],
+    ['たまに言ってくれたら十分', { free: 1, direct: 1 }],
+    ['ちゃんと言ってほしい', { free: -1, direct: 2 }],
+    ['毎日言ってほしい', { free: -2 }] ] },
+  { q: '彼の新しい挑戦（転職・旅・謎の趣味）を聞いたら？', a: [
+    ['いいじゃん、どうやるの？と一緒にワクワクする', { curious: 2, spark: 1 }],
+    ['応援する。でも計画は聞く', { curious: 1, direct: 1 }],
+    ['大丈夫？とまず心配する', { curious: -1 }],
+    ['また始まった…と思う', { curious: -2 }] ] },
+  { q: '気持ちがモヤっとした時、どうする？', a: [
+    ['その場ではっきり言う', { direct: 3, spark: 1 }],
+    ['落ち着いてから話す', { direct: 2 }],
+    ['察してほしい', { direct: -2 }],
+    ['黙って距離を置く', { direct: -1, free: 1 }] ] },
+];
+
+const TYPES = [
+  { min: 85, name: '刺激し合う 論破カップル型', tag: '最高の相性',
+    voice: '正直、一緒にいて一番楽しいタイプ。言い返してくる人、好きなんです。',
+    tips: ['議論は遠慮なく。言い負かされても楽しめるあなたは貴重です', '彼の思いつきに「それ面白い」と乗ると、一気に距離が縮まります', 'たまに真面目な本音を見せると、本気になります'],
+    warn: '刺激が強いぶん、お互い言い過ぎることも。ケンカの後は、どちらかが先に笑ってください。' },
+  { min: 70, name: '好奇心でつながる 冒険仲間型', tag: 'かなり良い相性',
+    voice: '新しいことを一緒に面白がってくれる人とは、ずっと話していられます。',
+    tips: ['行ったことのない場所や、やったことのない遊びに誘ってみて', '質問されると彼は喜びます。「なんでそう思うの？」が最強の一言', '予定は決めすぎず、余白を残すのがコツ'],
+    warn: '楽しいだけで終わらないように、自分の気持ちも言葉にして伝えると安定します。' },
+  { min: 55, name: '自由を許す 安心基地型', tag: '育てる相性',
+    voice: '放っておいてくれる優しさに、あとから気づくタイプです。',
+    tips: ['連絡が少なくても、気持ちが冷めたとは限りません', '会った時にちゃんと話を聞くと、彼はあなたの所に戻ってきます', '「あなたの話、面白い」は彼にとって最高の褒め言葉'],
+    warn: '我慢しすぎは禁物。寂しい時は、責めずに短く伝えると彼も動きやすくなります。' },
+  { min: 0, name: 'すれ違い注意の 慎重ペア型', tag: '工夫がいる相性',
+    voice: '悪気はないんです。ただ、考えてることを言葉にするのが遅いだけで…。',
+    tips: ['不安になったら、察してもらうより一言で聞く方が早いです', '彼の冗談は、からかいより“好意の確認”のことが多いです', '小さな約束を一緒に決めておくと、安心が増えます'],
+    warn: '価値観の違いは大きめ。でも違いを面白がれたら、一番深い関係になることもあります。' },
+];
+
+
+window.ENTP_DEEP = { Q, TYPES };
+})();
+
+;
+// 相性診断ページの画面の動き
+(function () {
+  const { TYPES, ORDER, result, compat } = window.MBTI;
+  const S = window.SITE || {};
+  const $ = id => document.getElementById(id);
+  const sel = { him: null, you: null };
+  let last = null;
+
+  // ───── 計測（GA4のIDが設定されている時だけ送る） ─────
+  function track(name, params) {
+    try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
+  }
+  if (S.gaId) {
+    const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + S.gaId; document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || []; window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date()); window.gtag('config', S.gaId);
+  }
+
+  // ───── タイプ選択 ─────
+  function buildGrid(gridId, who) {
+    $(gridId).replaceChildren(...ORDER.map(t => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.dataset.t = t; b.setAttribute('aria-pressed', 'false');
+      b.innerHTML = `<b>${t}</b><span>${TYPES[t].name}</span>`;
+      b.onclick = () => choose(who, t);
+      return b;
+    }));
+  }
+  function choose(who, t) {
+    sel[who] = t;
+    for (const b of $(who === 'him' ? 'gridHim' : 'gridYou').children) b.setAttribute('aria-pressed', String(b.dataset.t === t));
+    $(who + 'Label').textContent = `${t}（${TYPES[t].name}）`;
+    $('go').disabled = !(sel.him && sel.you);
+  }
+
+  // ───── 結果 ─────
+  function showResult(R, isDeep) {
+    last = R;
+    $('rHim').textContent = R.him; $('rHim').className = 'emb g-' + TYPES[R.him].group;
+    $('rYou').textContent = R.you; $('rYou').className = 'emb g-' + TYPES[R.you].group;
+    renderMeters(R.meters);
+    $('rlab').textContent = isDeep ? 'ENTP男子との リアルな相性' : 'ふたりの相性';
+    $('rtype').textContent = R.name; $('rtag').textContent = R.tag; $('rtext').textContent = R.text;
+    $('rvoice').textContent = `${R.him}の本音：${R.voice}`; $('rwarn').textContent = R.warn;
+    // ENTPはキャラ、それ以外はタイプの印
+    const isEntp = R.him === 'ENTP';
+    $('rchara').hidden = !isEntp; $('remb').hidden = isEntp;
+    $('remb').textContent = R.him; $('remb').className = 'emb g-' + TYPES[R.him].group;
+    $('rtips').replaceChildren(...R.tips.map((tip, n) => { const li = document.createElement('li'); li.innerHTML = `<b>${n + 1}</b><span></span>`; li.querySelector('span').textContent = tip; return li; }));
+    const H = TYPES[R.him];
+    $('pLove').textContent = H.love; $('pLikes').textContent = H.likes; $('pCools').textContent = H.cools;
+    $('pTitle').textContent = `${R.him}（${H.name}）の彼の恋愛傾向`;
+    $('deep').hidden = !isEntp || isDeep;
+    $('guide').hidden = !isEntp || !S.guideUrl;   // noteのURLを入れるまで非表示
+    renderPr();
+    const tag = isDeep ? `ENTP男子とのリアルな相性は${R.pct}%` : `彼${R.him}×わたし${R.you}の相性は${R.pct}%`;
+    $('shareText').textContent = `${tag}「${R.name}」だった！ #MBTI相性 #${R.him} #${R.you}`;
+    $('pairLink').href = `pair/${R.him.toLowerCase()}-${R.you.toLowerCase()}/`;
+    $('cardImg').hidden = true; $('cardNote').hidden = true; $('cardSave').hidden = true;
+    show('vR');
+    track('result', { him: R.him, you: R.you, pct: R.pct, deep: !!isDeep });
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { $('pct').textContent = R.pct; return; }
+    const t0 = performance.now();
+    (function tick(now) { const k = Math.min(1, (now - t0) / 900); $('pct').textContent = Math.round(R.pct * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); })(t0);
+  }
+
+  // ───── 見た目の部品 ─────
+  const icon = window.MBTI.icon;
+  function renderMeters(ms) {
+    const list = $('meterList'); list.replaceChildren();
+    for (const m of ms) {
+      const d = document.createElement('div'); d.className = 'mt';
+      d.innerHTML = `<div class="row"><span></span><span>${m.v}%</span></div><div class="bar" aria-hidden="true"><i style="width:0%"></i></div>`;
+      d.querySelector('span').textContent = m.label; list.appendChild(d);
+      requestAnimationFrame(() => requestAnimationFrame(() => { d.querySelector('i').style.width = m.v + '%'; }));
+    }
+  }
+  function decorate() {
+    $('mtTitle').innerHTML = icon('chart') + '<span>ふたりの相性の中身</span>';
+    $('hTips').innerHTML = icon('bulb') + '<span>うまくいく接し方</span>';
+    $('hWarn').innerHTML = icon('alert') + '<span>気をつけたいこと</span>';
+    $('steps').innerHTML = [['check', 'タイプを選ぶ', '彼とあなたの2つ'], ['heart', '相性が出る', '％と関係のタイプ'], ['bulb', '接し方がわかる', 'コツと注意点']]
+      .map(([i, t, d], n) => `<li><span class="n">STEP ${n + 1}</span>${icon(i, 26)}<b>${t}</b><small>${d}</small></li>`).join('');
+  }
+  decorate();
+
+  // ───── シェア画像 ─────
+  function ensureCardLib() {
+    if (window.MBTICard) return Promise.resolve();
+    return new Promise((res, rej) => { const el = document.createElement('script'); el.src = 'card.js'; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
+  }
+  async function makeCard() {
+    try { await Promise.all([ensureCardLib(), document.fonts.load('400 60px "Dela Gothic One"')]); } catch (e) {}
+    const cv = document.createElement('canvas');
+    window.MBTICard.drawStory(cv, last, S.url ? S.url.replace(/^https?:\/\//, '') : '');
+    const url = cv.toDataURL('image/png');
+    $('cardImg').src = url; $('cardImg').hidden = false; $('cardNote').hidden = false;
+    $('cardSave').href = url; $('cardSave').download = `mbti-${last.him}-${last.you}.png`; $('cardSave').hidden = false;
+    track('make_card', { him: last.him, you: last.you });
+  }
+
+  // ───── タイプ推定（4問） ─────
+  const EST = [
+    { q: ['休みの日、元気が回復するのは？', '休みの日、彼が元気になるのは？'], a: [['人と会って出かける', 'E'], ['ひとりでゆっくり', 'I']] },
+    { q: ['話していて楽しいのは？', '彼が楽しそうに話すのは？'], a: [['もしも話、将来、アイデアの話', 'N'], ['今日あったこと、具体的な話', 'S']] },
+    { q: ['友達に相談されたら、まず？', '相談された時、彼はまず？'], a: [['解決策を考える', 'T'], ['気持ちに寄り添う', 'F']] },
+    { q: ['旅行の計画は？', '彼の旅行の計画は？'], a: [['しっかり決めたい', 'J'], ['行ってから決めたい', 'P']] },
+  ];
+  let estWho = null, estI = 0, estAns = [];
+  function startEst(who) { estWho = who; estI = 0; estAns = []; renderEst(); show('vEst'); }
+  function renderEst() {
+    const it = EST[estI];
+    $('eno').textContent = `${estWho === 'him' ? '彼' : 'あなた'}のタイプ推定 ${estI + 1} / 4`;
+    $('eprog').style.width = (estI / 4 * 100) + '%';
+    $('etext').textContent = it.q[estWho === 'him' ? 1 : 0];
+    $('eopts').replaceChildren(...it.a.map(([label, letter]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = label;
+      b.onclick = () => { estAns[estI] = letter; estI++; if (estI < 4) renderEst(); else { choose(estWho, estAns.join('')); show('vStart'); track('estimate', { who: estWho }); } };
+      return b;
+    }));
+  }
+
+  // ───── ENTP専用の深掘り（8問） ─────
+  const Q = window.ENTP_DEEP.Q, DEEP = window.ENTP_DEEP.TYPES;
+  let i = 0; const picks = [];
+  function renderQ() {
+    const item = Q[i];
+    $('qno').textContent = `ENTP専用 Q${i + 1} / ${Q.length}`;
+    $('prog').style.width = (i / Q.length * 100) + '%';
+    $('qtext').textContent = item.q;
+    $('opts').replaceChildren(...item.a.map(([label], k) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = label;
+      b.onclick = () => { picks[i] = k; i++; i < Q.length ? renderQ() : finishDeep(); };
+      return b;
+    }));
+    $('back').hidden = i === 0;
+  }
+  function finishDeep() {
+    const s = { spark: 0, free: 0, curious: 0, humor: 0, direct: 0 };
+    picks.forEach((k, n) => { for (const [key, v] of Object.entries(Q[n].a[k][1])) s[key] += v; });
+    const w = { spark: 1.2, free: 1.2, curious: 1.1, humor: 1, direct: .8 };
+    const raw = Object.keys(s).reduce((a, k) => a + s[k] * w[k], 0);
+    const typePct = compat('ENTP', sel.you).pct;       // タイプ相性4割・行動6割
+    const pct = Math.max(38, Math.min(98, Math.round((64 + raw * 1.6) * .6 + typePct * .4)));
+    const t = DEEP.find(t => pct >= t.min);
+    showResult({ him: 'ENTP', you: sel.you, pct, name: t.name, tag: t.tag, text: 'ふたりのタイプの相性に、あなたの答えから見えた「付き合い方のクセ」を合わせた結果です。',
+      voice: t.voice, tips: t.tips, warn: t.warn }, true);
+  }
+
+  // ───── 画面切り替え・初期化 ─────
+  function show(v) { for (const id of ['vStart', 'vEst', 'vQ', 'vR']) $(id).hidden = id !== v; window.scrollTo(0, 0); }
+  buildGrid('gridHim', 'him'); buildGrid('gridYou', 'you');
+  // ?him=ENTP&you=INFJ、または #entp で開いた時は選んだ状態にする
+  const qs = new URLSearchParams(location.search);
+  const h0 = (qs.get('him') || location.hash.slice(1)).toUpperCase(), y0 = (qs.get('you') || '').toUpperCase();
+  if (TYPES[h0]) choose('him', h0);
+  if (TYPES[y0]) choose('you', y0);
+  if (TYPES[h0] && TYPES[y0] && qs.get('show') === '1') showResult(result(h0, y0), false);
+  for (const b of document.querySelectorAll('[data-est]')) b.onclick = () => startEst(b.dataset.est);
+  $('ecancel').onclick = () => show('vStart');
+  $('go').onclick = () => showResult(result(sel.him, sel.you), false);
+  $('goDeep').onclick = () => { i = 0; picks.length = 0; renderQ(); show('vQ'); track('deep_start', { you: sel.you }); };
+  $('back').onclick = () => { if (i > 0) { i--; renderQ(); } };
+  $('again').onclick = () => show('vStart');
+  $('makeCard').onclick = makeCard;
+  $('copy').onclick = () => {
+    const txt = $('shareText').textContent;
+    const done = () => { $('copy').textContent = 'コピーしました'; setTimeout(() => $('copy').textContent = 'シェア用の文をコピー', 1800); };
+    try { navigator.clipboard.writeText(txt).then(done, selectText); } catch (e) { selectText(); }
+    track('copy_share', {});
+  };
+  function selectText() { const r = document.createRange(); r.selectNodeContents($('shareText')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('copy').textContent = '文を選択しました。コピーしてね'; }
+  // 出口：PR枠は config.js の prList にURLを入れた案件だけ表示する
+  function renderPr() {
+    const box = $('prList'); box.replaceChildren();
+    for (const it of (S.prList || []).filter(x => x.url)) {
+      const d = document.createElement('div'); d.className = 'exit pr';
+      const k = document.createElement('div'); k.className = 'k'; k.textContent = 'PR（広告）';
+      const head = document.createElement('div'); head.className = 'head';
+      const ico = document.createElement('div'); ico.className = 'ico'; ico.innerHTML = icon(it.icon || 'star', 26);
+      const h = document.createElement('h3'); h.textContent = it.title;
+      head.append(ico, h);
+      const p = document.createElement('p'); p.textContent = it.desc;
+      const ul = document.createElement('ul');
+      for (const pt of (it.points || [])) { const li = document.createElement('li'); li.innerHTML = icon('check', 18); const sp = document.createElement('span'); sp.textContent = pt; li.appendChild(sp); ul.appendChild(li); }
+      const a = document.createElement('a'); a.className = 'btn'; a.href = it.url; a.target = '_blank'; a.rel = 'sponsored nofollow noopener'; a.textContent = it.btn;
+      a.addEventListener('click', () => track('click_pr', { key: it.key, him: last && last.him, you: last && last.you }));
+      const n = document.createElement('div'); n.className = 'slot'; n.textContent = `提供：${it.name}`;
+      d.append(k, head, p, ul, a, n); box.appendChild(d);
+    }
+  }
+  const gd = $('guideLink');
+  if (S.guideUrl) { gd.href = S.guideUrl; gd.target = '_blank'; gd.rel = 'noopener'; gd.textContent = 'ガイドを読む（note）'; } else gd.addEventListener('click', e => e.preventDefault());
+  gd.addEventListener('click', () => track('click_guide', {}));
+})();
