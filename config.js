@@ -13,6 +13,6 @@ window.SITE = {
     { key: 'photo', name: 'マッチングフォト',
       title: 'マッチングアプリを使うなら、プロフィール写真から',
       desc: 'プロが撮影するマッチングアプリ用のプロフィール写真サービス。18歳以上向けです。',
-      btn: 'マッチングフォトを見る', url: '' },
+      btn: 'マッチングフォトを見る', url: 'https://px.a8.net/svt/ejp?a8mat=4BED95+3ENC62+4MM2+5YJRM' },
   ],
 };
