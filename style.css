@@ -164,3 +164,11 @@ footer a { color: var(--sub); }
 
 .result .links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 18px; }
 .result .links .ghost { padding: 6px 0; margin: 0; }
+
+/* 結果の直後に出す短い誘導 */
+.exit.pr.top { padding: 14px 16px; gap: 10px; background: var(--bg); }
+.exit.pr.top .msg { margin: 0; font-weight: 900; font-size: 15px; line-height: 1.55; }
+.exit.pr.top .row { display: flex; align-items: center; gap: 12px; }
+.exit.pr.top .btn { width: auto; flex: 1; padding: 12px 14px; font-size: 15px; }
+.exit.pr.top .ico { width: 40px; height: 40px; border-radius: 12px; }
+.exit.pr.top .k { margin-bottom: -2px; }

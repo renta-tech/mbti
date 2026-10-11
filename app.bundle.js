@@ -328,7 +328,7 @@ window.ENTP_DEEP = { Q, TYPES };
     $('pTitle').textContent = `${R.him}（${H.name}）の彼の恋愛傾向`;
     $('deep').hidden = !isEntp || isDeep;
     $('guide').hidden = !isEntp || !S.guideUrl;   // noteのURLを入れるまで非表示
-    renderPr();
+    renderPr(R);
     const tag = isDeep ? `ENTP男子とのリアルな相性は${R.pct}%` : `彼${R.him}×わたし${R.you}の相性は${R.pct}%`;
     $('shareText').textContent = `${tag}「${R.name}」だった！ #MBTI相性 #${R.him} #${R.you}`;
     $('pairLink').href = `pair/${R.him.toLowerCase()}-${R.you.toLowerCase()}/`;
@@ -448,23 +448,37 @@ window.ENTP_DEEP = { Q, TYPES };
   };
   function selectText() { const r = document.createRange(); r.selectNodeContents($('shareText')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $('copy').textContent = '文を選択しました。コピーしてね'; }
   // 出口：PR枠は config.js の prList にURLを入れた案件だけ表示する
-  function renderPr() {
-    const box = $('prList'); box.replaceChildren();
-    for (const it of (S.prList || []).filter(x => x.url)) {
-      const d = document.createElement('div'); d.className = 'exit pr';
-      const k = document.createElement('div'); k.className = 'k'; k.textContent = 'PR（広告）';
+  function tierOf(pct) { return pct >= 75 ? 'high' : pct >= 60 ? 'mid' : 'low'; }
+  function prCard(it, R, top, tier) {
+    const d = document.createElement('div'); d.className = 'exit pr' + (top ? ' top' : '');
+    const k = document.createElement('div'); k.className = 'k'; k.textContent = 'PR（広告）';
+    const ico = document.createElement('div'); ico.className = 'ico'; ico.innerHTML = icon(it.icon || 'star', top ? 22 : 26);
+    const a = document.createElement('a'); a.className = 'btn'; a.href = it.url; a.target = '_blank'; a.rel = 'sponsored nofollow noopener'; a.textContent = it.btn;
+    a.addEventListener('click', () => track('click_pr', { key: it.key, slot: top ? 'top' : 'bottom', tier, him: R.him, you: R.you }));
+    const n = document.createElement('div'); n.className = 'slot'; n.textContent = `提供：${it.name}`;
+    if (top) {
+      const m = document.createElement('p'); m.className = 'msg'; m.textContent = (it.msg && it.msg[tier]) || it.title;
+      const row = document.createElement('div'); row.className = 'row'; row.append(ico, a);
+      d.append(k, m, row, n);
+    } else {
       const head = document.createElement('div'); head.className = 'head';
-      const ico = document.createElement('div'); ico.className = 'ico'; ico.innerHTML = icon(it.icon || 'star', 26);
-      const h = document.createElement('h3'); h.textContent = it.title;
-      head.append(ico, h);
+      const h = document.createElement('h3'); h.textContent = it.title; head.append(ico, h);
       const p = document.createElement('p'); p.textContent = it.desc;
       const ul = document.createElement('ul');
       for (const pt of (it.points || [])) { const li = document.createElement('li'); li.innerHTML = icon('check', 18); const sp = document.createElement('span'); sp.textContent = pt; li.appendChild(sp); ul.appendChild(li); }
-      const a = document.createElement('a'); a.className = 'btn'; a.href = it.url; a.target = '_blank'; a.rel = 'sponsored nofollow noopener'; a.textContent = it.btn;
-      a.addEventListener('click', () => track('click_pr', { key: it.key, him: last && last.him, you: last && last.you }));
-      const n = document.createElement('div'); n.className = 'slot'; n.textContent = `提供：${it.name}`;
-      d.append(k, head, p, ul, a, n); box.appendChild(d);
+      d.append(k, head, p, ul, a, n);
     }
+    return d;
+  }
+  // 結果（相性の高さ）に合う案件を優先して出す。1つ目は結果の直後、残りは下に並べる
+  function renderPr(R) {
+    const tier = tierOf(R.pct);
+    const items = (S.prList || []).filter(x => x.url && ((x.w && x.w[tier]) ?? 1) > 0)
+      .sort((a, b) => ((b.w && b.w[tier]) ?? 1) - ((a.w && a.w[tier]) ?? 1));
+    $('prTop').replaceChildren(); $('prList').replaceChildren();
+    if (!items.length) return;
+    $('prTop').appendChild(prCard(items[0], R, true, tier));
+    for (const it of items.slice(1)) $('prList').appendChild(prCard(it, R, false, tier));
   }
   const gd = $('guideLink');
   if (S.guideUrl) { gd.href = S.guideUrl; gd.target = '_blank'; gd.rel = 'noopener'; gd.textContent = 'ガイドを読む（note）'; } else gd.addEventListener('click', e => e.preventDefault());
