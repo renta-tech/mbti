@@ -4,6 +4,8 @@ window.SITE = {
   gaId: '',           // Googleアナリティクス4の測定ID（G-XXXXXXX）。空なら計測しない
   guideUrl: '',       // 有料ガイド（note）のURL
   contact: 'TikTok @entp0341 のDM',
+  // 見せ方の比較（A=結果の直後のみ／B=さらに画面下の小さな帯）。匿名の回数カウンターに送る
+  ab: { ns: 'mbti-aisho-174fed7fb1', on: true },
   // PR枠。url が空の案件は画面に出ない（承認されてリンクを入れたものだけ表示）
   prList: [
     { key: 'coconala', name: 'ココナラ占い＆お悩み相談', icon: 'chat',

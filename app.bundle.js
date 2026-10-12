@@ -328,7 +328,8 @@ window.ENTP_DEEP = { Q, TYPES };
     $('pTitle').textContent = `${R.him}（${H.name}）の彼の恋愛傾向`;
     $('deep').hidden = !isEntp || isDeep;
     $('guide').hidden = !isEntp || !S.guideUrl;   // noteのURLを入れるまで非表示
-    renderPr(R);
+    const topItem = renderPr(R);
+    abHit(isDeep ? 'result_deep' : 'result'); setupBar(topItem, tierOf(R.pct));
     const tag = isDeep ? `ENTP男子とのリアルな相性は${R.pct}%` : `彼${R.him}×わたし${R.you}の相性は${R.pct}%`;
     $('shareText').textContent = `${tag}「${R.name}」だった！ #MBTI相性 #${R.him} #${R.you}`;
     $('pairLink').href = `pair/${R.him.toLowerCase()}-${R.you.toLowerCase()}/`;
@@ -341,6 +342,43 @@ window.ENTP_DEEP = { Q, TYPES };
     (function tick(now) { const k = Math.min(1, (now - t0) / 900); $('pct').textContent = Math.round(R.pct * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); })(t0);
   }
 
+  // ───── 見せ方の比較（A/B）と匿名カウンター ─────
+  function abState() { return (window.__AB = window.__AB || { v: null, closed: false, io: null }); }
+  function abVariant() {
+    const st = abState(); if (st.v) return st.v;
+    const q = new URLSearchParams(location.search).get('v');
+    if (q === 'A' || q === 'B') { st.v = q; st.test = true; return q; }
+    let v = null; try { v = localStorage.getItem('mbti_ab'); } catch (e) {}
+    if (v !== 'A' && v !== 'B') { v = Math.random() < .5 ? 'A' : 'B'; try { localStorage.setItem('mbti_ab', v); } catch (e) {} }
+    st.v = v; return v;
+  }
+  function abHit(key) {
+    try {
+      const ab = S.ab; if (!ab || !ab.on || !ab.ns) return;
+      if (navigator.doNotTrack === '1' || abState().test || /^(localhost|127\.|file)/.test(location.hostname || 'file')) return;
+      fetch('https://abacus.jasoncameron.dev/hit/' + ab.ns + '/' + encodeURIComponent(abVariant() + '_' + key), { mode: 'no-cors', keepalive: true }).catch(() => {});
+    } catch (e) {}
+  }
+  // 見せ方Bだけ：結果の直後の枠が画面から外れたら、下に小さな帯を出す
+  function setupBar(item, tier) {
+    const st = abState(), bar = $('pbar');
+    if (st.io) { st.io.disconnect(); st.io = null; }
+    document.body.classList.remove('has-pbar'); bar.hidden = true;
+    if (abVariant() !== 'B' || !item || st.closed) return;
+    $('pbarMsg').textContent = (item.msg && item.msg[tier]) || item.title;
+    const b = $('pbarBtn'); b.textContent = item.btn; b.href = item.url;
+    b.onclick = () => abHit('click_bar_' + item.key);
+    $('pbarX').onclick = () => { st.closed = true; bar.hidden = true; document.body.classList.remove('has-pbar'); abHit('bar_close'); };
+    const target = $('prTop'); let shown = false;
+    st.io = new IntersectionObserver(es => {
+      const visible = es[0].isIntersecting && es[0].intersectionRatio > .3;
+      const view = !$('vR').hidden;
+      const want = view && !visible && !st.closed;
+      if (want && bar.hidden) { bar.hidden = false; document.body.classList.add('has-pbar'); if (!shown) { shown = true; abHit('bar_show'); } }
+      if (!want && !bar.hidden) { bar.hidden = true; document.body.classList.remove('has-pbar'); }
+    }, { threshold: [0, .3, 1] });
+    st.io.observe(target);
+  }
   // ───── 見た目の部品 ─────
   const icon = window.MBTI.icon;
   function renderMeters(ms) {
@@ -436,7 +474,7 @@ window.ENTP_DEEP = { Q, TYPES };
   for (const b of document.querySelectorAll('[data-est]')) b.onclick = () => startEst(b.dataset.est);
   $('ecancel').onclick = () => show('vStart');
   $('go').onclick = () => showResult(result(sel.him, sel.you), false);
-  $('goDeep').onclick = () => { i = 0; picks.length = 0; renderQ(); show('vQ'); track('deep_start', { you: sel.you }); };
+  $('goDeep').onclick = () => { abHit('deep_start'); i = 0; picks.length = 0; renderQ(); show('vQ'); track('deep_start', { you: sel.you }); };
   $('back').onclick = () => { if (i > 0) { i--; renderQ(); } };
   $('again').onclick = () => show('vStart');
   $('makeCard').onclick = makeCard;
@@ -454,7 +492,7 @@ window.ENTP_DEEP = { Q, TYPES };
     const k = document.createElement('div'); k.className = 'k'; k.textContent = 'PR（広告）';
     const ico = document.createElement('div'); ico.className = 'ico'; ico.innerHTML = icon(it.icon || 'star', top ? 22 : 26);
     const a = document.createElement('a'); a.className = 'btn'; a.href = it.url; a.target = '_blank'; a.rel = 'sponsored nofollow noopener'; a.textContent = it.btn;
-    a.addEventListener('click', () => track('click_pr', { key: it.key, slot: top ? 'top' : 'bottom', tier, him: R.him, you: R.you }));
+    a.addEventListener('click', () => { abHit('click_' + (top ? 'top' : 'rest') + '_' + it.key); track('click_pr', { key: it.key, slot: top ? 'top' : 'bottom', tier, v: abVariant(), him: R.him, you: R.you }); });
     const n = document.createElement('div'); n.className = 'slot'; n.textContent = `提供：${it.name}`;
     if (top) {
       const m = document.createElement('p'); m.className = 'msg'; m.textContent = (it.msg && it.msg[tier]) || it.title;
@@ -476,9 +514,10 @@ window.ENTP_DEEP = { Q, TYPES };
     const items = (S.prList || []).filter(x => x.url && ((x.w && x.w[tier]) ?? 1) > 0)
       .sort((a, b) => ((b.w && b.w[tier]) ?? 1) - ((a.w && a.w[tier]) ?? 1));
     $('prTop').replaceChildren(); $('prList').replaceChildren();
-    if (!items.length) return;
+    if (!items.length) return null;
     $('prTop').appendChild(prCard(items[0], R, true, tier));
     for (const it of items.slice(1)) $('prList').appendChild(prCard(it, R, false, tier));
+    return items[0];
   }
   const gd = $('guideLink');
   if (S.guideUrl) { gd.href = S.guideUrl; gd.target = '_blank'; gd.rel = 'noopener'; gd.textContent = 'ガイドを読む（note）'; } else gd.addEventListener('click', e => e.preventDefault());

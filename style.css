@@ -172,3 +172,12 @@ footer a { color: var(--sub); }
 .exit.pr.top .btn { width: auto; flex: 1; padding: 12px 14px; font-size: 15px; }
 .exit.pr.top .ico { width: 40px; height: 40px; border-radius: 12px; }
 .exit.pr.top .k { margin-bottom: -2px; }
+
+/* 画面下の小さな広告帯（見せ方Bのみ） */
+.pbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 2px solid var(--pr); box-shadow: 0 -6px 20px rgba(40, 20, 70, .12); }
+.pbar .lab { flex: none; font-size: 11px; font-weight: 900; color: var(--pr); border: 1px solid var(--pr); border-radius: 6px; padding: 2px 6px; }
+.pbar .t { flex: 1; min-width: 0; font-size: 13px; font-weight: 900; line-height: 1.4; }
+.pbar .btn { width: auto; flex: none; padding: 10px 14px; font-size: 14px; }
+.pbar .x { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--wash); color: var(--sub); font-size: 20px; line-height: 1; cursor: pointer; }
+body.has-pbar .wrap { padding-bottom: 110px; }
